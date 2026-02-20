@@ -12,7 +12,7 @@
  *
  * @example
  * ```typescript
- * import { configure } from '@tinyland-inc/tinyland-admin-user-service';
+ * import { configure } from '@tummycrypt/tinyland-admin-user-service';
  *
  * configure({
  *   usersFilePath: '/app/content/auth/admin-users.json',

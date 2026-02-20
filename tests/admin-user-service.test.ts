@@ -1,5 +1,5 @@
 /**
- * Tests for @tinyland-inc/tinyland-admin-user-service
+ * Tests for @tummycrypt/tinyland-admin-user-service
  *
  * 140+ tests covering all service methods, DI configuration, edge cases,
  * and persistence behaviors.

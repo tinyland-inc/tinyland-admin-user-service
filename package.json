@@ -1,5 +1,5 @@
 {
-  "name": "@tinyland-inc/tinyland-admin-user-service",
+  "name": "@tummycrypt/tinyland-admin-user-service",
   "version": "0.1.0",
   "description": "Admin user lifecycle management with in-memory caching and file persistence",
   "type": "module",
@@ -46,5 +46,9 @@
   },
   "engines": {
     "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   }
 }

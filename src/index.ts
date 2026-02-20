@@ -1,5 +1,5 @@
 /**
- * @tinyland-inc/tinyland-admin-user-service
+ * @tummycrypt/tinyland-admin-user-service
  *
  * Admin user lifecycle management with in-memory caching and file persistence.
  * Provides dependency injection for file I/O, TOTP, and password hashing.
