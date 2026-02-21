@@ -9,9 +9,7 @@ Dual-mode build: works with both pnpm (standalone) and Bazel (CI/production).
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("@npm//:defs.bzl", "npm_link_all_packages")
 
-npm_link_all_packages(name = "node_modules")
 
 ts_project(
     name = "tinyland_admin_user_service",
@@ -28,14 +26,13 @@ ts_project(
     tsconfig = ":tsconfig.json",
     transpiler = "tsc",
     deps = [
-        ":node_modules",
+        "//:node_modules",
         "//:tsconfig_base",
-        ":node_modules/bcryptjs",
-        ":node_modules/uuid",
-        ":node_modules/@types/bcryptjs",
-        ":node_modules/@types/uuid",
-        ":node_modules/@types/node",
-        ":node_modules/@types/node",
+        "//:node_modules/bcryptjs",
+        "//:node_modules/uuid",
+        "//:node_modules/@types/bcryptjs",
+        "//:node_modules/@types/uuid",
+        "//:node_modules/@types/node",
     ],
     visibility = ["//visibility:public"],
 )
@@ -60,8 +57,8 @@ ts_project(
     transpiler = "tsc",
     deps = [
         ":tinyland_admin_user_service",
-        ":node_modules",
-        ":node_modules/vitest",
+        "//:node_modules",
+        "//:node_modules/vitest",
     ],
 )
 
@@ -70,11 +67,11 @@ js_test(
     data = [
         ":tinyland_admin_user_service",
         ":tinyland_admin_user_service_test_lib",
-        ":node_modules",
-        ":node_modules/vitest",
+        "//:node_modules",
+        "//:node_modules/vitest",
         "vitest.config.ts",
     ],
-    entry_point = ":node_modules/vitest/vitest.mjs",
+    entry_point = "//:node_modules/vitest/vitest.mjs",
     args = [
         "run",
         "--reporter=verbose",
