@@ -1,9 +1,9 @@
-/**
- * Tests for @tummycrypt/tinyland-admin-user-service
- *
- * 140+ tests covering all service methods, DI configuration, edge cases,
- * and persistence behaviors.
- */
+
+
+
+
+
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
@@ -16,9 +16,9 @@ import {
 } from '../src/index.js';
 import type { AdminUser, AdminUserServiceConfig } from '../src/index.js';
 
-// ---------------------------------------------------------------------------
-// Mock bcryptjs
-// ---------------------------------------------------------------------------
+
+
+
 vi.mock('bcryptjs', () => ({
 	default: {
 		hash: vi.fn(async (password: string, _rounds: number) => `$2a$10$hashed_${password}`),
@@ -26,9 +26,9 @@ vi.mock('bcryptjs', () => ({
 	},
 }));
 
-// ---------------------------------------------------------------------------
-// Mock uuid
-// ---------------------------------------------------------------------------
+
+
+
 let uuidCounter = 0;
 vi.mock('uuid', () => ({
 	v4: vi.fn(() => {
@@ -37,11 +37,11 @@ vi.mock('uuid', () => ({
 	}),
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
-/** Build a mock file system for a single test */
+
+
+
+
 function createMockFileSystem(initialData?: { users: AdminUser[] } | AdminUser[]) {
 	let fileContent = initialData ? JSON.stringify(initialData) : '';
 	let fileExists = !!initialData;
@@ -111,9 +111,9 @@ function sampleUser2(overrides: Partial<AdminUser> = {}): AdminUser {
 	};
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+
+
+
 
 describe('AdminUserService', () => {
 	let service: AdminUserService;
@@ -136,9 +136,9 @@ describe('AdminUserService', () => {
 		service = new AdminUserService();
 	});
 
-	// -----------------------------------------------------------------------
-	// Config DI
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('Config DI', () => {
 		it('should apply custom usersFilePath', () => {
 			expect(getUsersFilePath()).toBe('/test/admin-users.json');
@@ -199,9 +199,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// loadUsers
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('loadUsers', () => {
 		it('should parse array format', async () => {
 			fs = createMockFileSystem([sampleUser()]);
@@ -218,7 +218,7 @@ describe('AdminUserService', () => {
 		});
 
 		it('should handle ENOENT (missing file) gracefully', async () => {
-			fs = createMockFileSystem(); // no initial data
+			fs = createMockFileSystem(); 
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile });
 			service = new AdminUserService();
 			const users = await service.getAllUsers();
@@ -292,9 +292,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// getAllUsers
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('getAllUsers', () => {
 		it('should return all users', async () => {
 			const users = await service.getAllUsers();
@@ -359,16 +359,16 @@ describe('AdminUserService', () => {
 
 		it('should handle subsequent calls after file changes', async () => {
 			await service.getAllUsers();
-			// Simulate file change
+			
 			fs.setContent(JSON.stringify({ users: [sampleUser(), sampleUser2(), { id: 'user-3', username: 'charlie', role: 'admin' }] }));
 			const users = await service.getAllUsers();
 			expect(users).toHaveLength(3);
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// getUserById
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('getUserById', () => {
 		it('should return user when found', async () => {
 			const user = await service.getUserById('user-1');
@@ -418,9 +418,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// getUserByHandle
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('getUserByHandle', () => {
 		it('should return user when found', async () => {
 			const user = await service.getUserByHandle('alice_h');
@@ -470,14 +470,14 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// createUser
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('createUser', () => {
 		it('should hash the password', async () => {
 			const result = await service.createUser({ username: 'newuser', password: 'mypassword', role: 'admin' });
 			expect(result).not.toBeNull();
-			// bcrypt mock produces $2a$10$hashed_<password>
+			
 			expect(fs.writeFile).toHaveBeenCalled();
 			const written = JSON.parse(fs.writeFile.mock.calls[0][1]);
 			const saved = written.users.find((u: AdminUser) => u.username === 'newuser');
@@ -597,9 +597,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// updateUser
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('updateUser', () => {
 		it('should merge updates into existing user', async () => {
 			const result = await service.updateUser('user-1', { displayName: 'Alice Updated' });
@@ -668,9 +668,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// updatePassword
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('updatePassword', () => {
 		it('should hash the new password', async () => {
 			await service.updatePassword('user-1', 'newpass');
@@ -711,7 +711,7 @@ describe('AdminUserService', () => {
 
 		it('should not write file when user not found', async () => {
 			await service.updatePassword('nonexistent', 'newpass');
-			// readFile will be called for init + loadUsers, but writeFile should not
+			
 			expect(fs.writeFile).not.toHaveBeenCalled();
 		});
 
@@ -722,9 +722,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// deleteUser
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('deleteUser', () => {
 		it('should hard delete user from store', async () => {
 			const result = await service.deleteUser('user-1');
@@ -757,8 +757,8 @@ describe('AdminUserService', () => {
 
 		it('should allow deleting all users', async () => {
 			await service.deleteUser('user-1');
-			// Need to re-read from file to clear cached state, so re-set the file content
-			// Actually the writeFile mock updates the content; let's just call delete again
+			
+			
 			const written1 = JSON.parse(fs.writeFile.mock.calls[0][1]);
 			fs.setContent(JSON.stringify(written1));
 			service = new AdminUserService();
@@ -769,9 +769,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// toggleUserStatus
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('toggleUserStatus', () => {
 		it('should flip isActive from true to false', async () => {
 			const result = await service.toggleUserStatus('user-1');
@@ -817,14 +817,14 @@ describe('AdminUserService', () => {
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile, usersFilePath: '/test/admin-users.json' });
 			service = new AdminUserService();
 			const result = await service.toggleUserStatus('u1');
-			// !undefined = true
+			
 			expect(result?.isActive).toBe(true);
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// verifyPassword
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('verifyPassword', () => {
 		it('should return user on correct password', async () => {
 			const result = await service.verifyPassword('alice_h', 'secret123');
@@ -899,19 +899,19 @@ describe('AdminUserService', () => {
 		});
 
 		it('should return null for empty password', async () => {
-			// bcrypt mock: hash.endsWith('') is always true, but we test the flow
+			
 			fs = createMockFileSystem({ users: [sampleUser({ password: '' })] });
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile, usersFilePath: '/test/admin-users.json' });
 			service = new AdminUserService();
 			const result = await service.verifyPassword('alice_h', 'anything');
-			// password is '' which is falsy, so returns null
+			
 			expect(result).toBeNull();
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// TOTP
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('TOTP', () => {
 		it('getTotpSecret should return secret when set', async () => {
 			fs = createMockFileSystem({ users: [sampleUser({ totpSecret: 'my-secret' })] });
@@ -995,9 +995,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// needsFirstLoginSetup
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('needsFirstLoginSetup', () => {
 		it('should return true when firstLogin is true', async () => {
 			fs = createMockFileSystem({ users: [sampleUser({ firstLogin: true })] });
@@ -1031,9 +1031,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// Persistence
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('Persistence', () => {
 		it('should write JSON with { users: [...] } format', async () => {
 			await service.createUser({ username: 'newuser', password: 'pw', role: 'admin' });
@@ -1078,7 +1078,7 @@ describe('AdminUserService', () => {
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile, usersFilePath: '/test/admin-users.json' });
 			service = new AdminUserService();
 
-			// Trigger a save by updating
+			
 			await service.updateUser('user-1', { displayName: 'Custom Updated' });
 
 			const written = JSON.parse(fs.writeFile.mock.calls[0][1]);
@@ -1094,9 +1094,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// Edge cases
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('Edge cases', () => {
 		it('should handle concurrent getAllUsers calls', async () => {
 			const [a, b] = await Promise.all([
@@ -1112,7 +1112,7 @@ describe('AdminUserService', () => {
 				service.createUser({ username: 'concurrent', password: 'pw', role: 'admin' }),
 				service.getAllUsers(),
 			]);
-			// Both should succeed without throwing
+			
 			expect(users).toBeDefined();
 		});
 
@@ -1146,10 +1146,10 @@ describe('AdminUserService', () => {
 			resetConfig();
 			fs = createMockFileSystem({ users: [] });
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile, usersFilePath: '/test/admin-users.json' });
-			// No TOTP functions configured
+			
 			service = new AdminUserService();
-			// This should throw because generateTempPassword is called when no password provided
-			// But if password IS provided, no TOTP functions needed
+			
+			
 			const result = await service.createUser({ username: 'newuser', password: 'pw', role: 'admin' });
 			expect(result.username).toBe('newuser');
 		});
@@ -1172,9 +1172,9 @@ describe('AdminUserService', () => {
 		});
 	});
 
-	// -----------------------------------------------------------------------
-	// Singleton
-	// -----------------------------------------------------------------------
+	
+	
+	
 	describe('Singleton', () => {
 		it('should export adminUserService singleton', async () => {
 			const { adminUserService } = await import('../src/index.js');
