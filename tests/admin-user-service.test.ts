@@ -226,19 +226,21 @@ describe('AdminUserService', () => {
 		});
 
 		it('should map passwordHash to password when password absent', async () => {
-			fs = createMockFileSystem({ users: [{ id: 'u1', username: 'x', role: 'admin', passwordHash: '$2a$10$hashed_pw' } as AdminUser] });
+			fs = createMockFileSystem({ users: [{ id: 'u1', username: 'x', handle: 'x_h', role: 'admin', isActive: true, passwordHash: '$2a$10$hashed_pw' } as AdminUser] });
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile });
 			service = new AdminUserService();
-			const user = await service.getUserById('u1');
-			expect(user?.password).toBe('$2a$10$hashed_pw');
+			const storedUser = await service.getUserById('u1');
+			expect(storedUser?.password).toBeUndefined();
+			expect(await service.verifyPassword('x_h', 'pw')).not.toBeNull();
 		});
 
 		it('should not overwrite password with passwordHash if password already set', async () => {
-			fs = createMockFileSystem({ users: [{ id: 'u1', username: 'x', role: 'admin', password: '$2a$10$hashed_original', passwordHash: '$2a$10$hashed_alt' } as AdminUser] });
+			fs = createMockFileSystem({ users: [{ id: 'u1', username: 'x', handle: 'x_h', role: 'admin', isActive: true, password: '$2a$10$hashed_original', passwordHash: '$2a$10$hashed_alt' } as AdminUser] });
 			configure({ readFile: fs.readFile, writeFile: fs.writeFile });
 			service = new AdminUserService();
 			const user = await service.getUserById('u1');
-			expect(user?.password).toBe('$2a$10$hashed_original');
+			expect(user?.password).toBeUndefined();
+			expect(await service.verifyPassword('x_h', 'original')).not.toBeNull();
 		});
 
 		it('should map active to isActive when isActive absent', async () => {
@@ -305,6 +307,8 @@ describe('AdminUserService', () => {
 			const users = await service.getAllUsers();
 			for (const user of users) {
 				expect(user.password).toBeUndefined();
+				expect(user.passwordHash).toBeUndefined();
+				expect(user.totpSecret).toBeUndefined();
 			}
 		});
 
@@ -387,9 +391,11 @@ describe('AdminUserService', () => {
 			expect(user).not.toBeNull();
 		});
 
-		it('should return full user object (including password)', async () => {
+		it('should strip credential fields from getUserById results', async () => {
 			const user = await service.getUserById('user-1');
-			expect(user?.password).toBeDefined();
+			expect(user?.password).toBeUndefined();
+			expect(user?.passwordHash).toBeUndefined();
+			expect(user?.totpSecret).toBeUndefined();
 		});
 
 		it('should return correct user among multiple', async () => {
@@ -436,6 +442,8 @@ describe('AdminUserService', () => {
 		it('should strip password from result', async () => {
 			const user = await service.getUserByHandle('alice_h');
 			expect(user?.password).toBeUndefined();
+			expect(user?.passwordHash).toBeUndefined();
+			expect(user?.totpSecret).toBeUndefined();
 		});
 
 		it('should find correct user by handle', async () => {
@@ -550,6 +558,8 @@ describe('AdminUserService', () => {
 		it('should strip password from return value', async () => {
 			const result = await service.createUser({ username: 'newuser', password: 'pw', role: 'admin' });
 			expect(result.password).toBeUndefined();
+			expect(result.passwordHash).toBeUndefined();
+			expect(result.totpSecret).toBeUndefined();
 		});
 
 		it('should set isActive to true by default', async () => {
@@ -647,6 +657,8 @@ describe('AdminUserService', () => {
 		it('should strip password from return value', async () => {
 			const result = await service.updateUser('user-1', { displayName: 'X' });
 			expect(result?.password).toBeUndefined();
+			expect(result?.passwordHash).toBeUndefined();
+			expect(result?.totpSecret).toBeUndefined();
 		});
 
 		it('should persist changes to file', async () => {
@@ -789,6 +801,8 @@ describe('AdminUserService', () => {
 		it('should strip password from result', async () => {
 			const result = await service.toggleUserStatus('user-1');
 			expect(result?.password).toBeUndefined();
+			expect(result?.passwordHash).toBeUndefined();
+			expect(result?.totpSecret).toBeUndefined();
 		});
 
 		it('should return null for missing user', async () => {
@@ -865,6 +879,8 @@ describe('AdminUserService', () => {
 		it('should strip password from result', async () => {
 			const result = await service.verifyPassword('alice_h', 'secret123');
 			expect(result?.password).toBeUndefined();
+			expect(result?.passwordHash).toBeUndefined();
+			expect(result?.totpSecret).toBeUndefined();
 		});
 
 		it('should return null for nonexistent handle', async () => {
