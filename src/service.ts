@@ -94,6 +94,11 @@ export class AdminUserService {
 		}
 	}
 
+	private sanitizeUser<T extends AdminUser>(user: T): T {
+		const { password, passwordHash, totpSecret, ...sanitized } = user;
+		return sanitized as T;
+	}
+
 	
 
 
@@ -101,10 +106,7 @@ export class AdminUserService {
 	async getAllUsers(): Promise<AdminUser[]> {
 		await this.ensureInitialized();
 		await this.loadUsers();
-		return Array.from(this.users.values()).map(user => ({
-			...user,
-			password: undefined,
-		}));
+		return Array.from(this.users.values()).map(user => this.sanitizeUser({ ...user }));
 	}
 
 	
@@ -119,7 +121,7 @@ export class AdminUserService {
 		const user = this.users.get(id);
 		if (!user) return null;
 
-		return user;
+		return this.sanitizeUser({ ...user });
 	}
 
 	
@@ -134,10 +136,7 @@ export class AdminUserService {
 		const user = Array.from(this.users.values()).find(u => u.handle === handle);
 		if (!user) return null;
 
-		return {
-			...user,
-			password: undefined,
-		};
+		return this.sanitizeUser({ ...user });
 	}
 
 	
@@ -207,13 +206,12 @@ export class AdminUserService {
 		this.users.set(newUser.id, newUser);
 		await this.saveUsers();
 
-		return {
+		return this.sanitizeUser({
 			...newUser,
-			password: undefined,
 			tempPassword,
 			qrCode,
 			totpUri,
-		};
+		}) as CreateUserResult;
 	}
 
 	
@@ -253,10 +251,7 @@ export class AdminUserService {
 		this.users.set(id, updatedUser);
 		await this.saveUsers();
 
-		return {
-			...updatedUser,
-			password: undefined,
-		};
+		return this.sanitizeUser({ ...updatedUser });
 	}
 
 	
@@ -321,10 +316,7 @@ export class AdminUserService {
 		this.users.set(id, user);
 		await this.saveUsers();
 
-		return {
-			...user,
-			password: undefined,
-		};
+		return this.sanitizeUser({ ...user });
 	}
 
 	
@@ -352,10 +344,7 @@ export class AdminUserService {
 		this.users.set(user.id, user);
 		await this.saveUsers();
 
-		return {
-			...user,
-			password: undefined,
-		};
+		return this.sanitizeUser({ ...user });
 	}
 
 	
